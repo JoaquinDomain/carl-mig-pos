@@ -288,7 +288,7 @@ export default function Home() {
       <div className="relative z-10 max-w-7xl mx-auto p-6 lg:p-10">
 
         {/* ===== Branded Header ===== */}
-        <header className="flex flex-col md:flex-row md:items-center gap-4 mb-8 pb-6 border-b-2 border-[#5a361e]/15">
+        <header className="flex flex-col gap-3 mb-6 md:flex-row md:items-center md:gap-4 md:mb-8 md:pb-6 md:border-b-2 md:border-[#5a361e]/15">
           <div className="flex items-center gap-4">
             {/* Logo Mark */}
             <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[#5a361e] to-[#3b2210] flex items-center justify-center shadow-lg">
@@ -315,22 +315,22 @@ export default function Home() {
           <div className="md:ml-auto flex items-center gap-3">
             {/* Navigation */}
             {role === 'admin' && (
-            <nav className="hidden md:flex items-center gap-2 bg-white rounded-full px-4 py-2 border-2 border-[#5a361e]/15">
-              <a href="/" className="text-sm font-bold text-[#0a6c5d] px-2">POS</a>
+            <nav className="flex items-center gap-1 bg-white rounded-xl px-2 py-2 border-2 border-[#5a361e]/15">
+              <a href="/" className="text-xs sm:text-sm font-bold text-[#0a6c5d] px-2 sm:px-3 py-1">POS</a>
               <span className="text-[#5a361e]/30">|</span>
-              <a href="/inventory" className="text-sm font-bold text-[#5a361e] hover:text-[#0a6c5d] px-2">Inventory</a>
+              <a href="/inventory" className="text-xs sm:text-sm font-bold text-[#5a361e] hover:text-[#0a6c5d] px-2 sm:px-3 py-1">Inventory</a>
               <span className="text-[#5a361e]/30">|</span>
-              <a href="/reports" className="text-sm font-bold text-[#5a361e] hover:text-[#0a6c5d] px-2">Reports</a>
+              <a href="/reports" className="text-xs sm:text-sm font-bold text-[#5a361e] hover:text-[#0a6c5d] px-2 sm:px-3 py-1">Reports</a>
             </nav>
             )}
             
-            <div className="relative">
+            <div className="relative w-full sm:w-64">
               <input
                 type="text"
                 placeholder="Search menu or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2.5 bg-white border-2 border-[#5a361e]/15 rounded-full text-sm focus:outline-none focus:border-[#0a6c5d] transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-[#5a361e]/15 rounded-full text-sm focus:outline-none focus:border-[#0a6c5d] transition-colors"
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a361e]/50">🔍</span>
             </div>
@@ -342,7 +342,7 @@ export default function Home() {
         </header>
 
         {/* ===== Category Tabs ===== */}
-        <nav className="flex gap-2 mb-8 overflow-x-auto pb-2">
+        <nav className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-2 px-2">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -370,7 +370,7 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {filteredProducts.map((product, index) => (
                 <button
                   key={product.id}
