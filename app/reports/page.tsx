@@ -25,6 +25,7 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('7'); // 7, 30, 90 days
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [resetFlag, setResetFlag] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -97,8 +98,10 @@ export default function ReportsPage() {
     return Object.values(dailyData).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   };
 
-  const stats = calculateStats();
-  const dailySummary = calculateDailySummary();
+  const stats = resetFlag
+    ? { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, paymentBreakdown: {}, statusBreakdown: {} }
+    : calculateStats();
+  const dailySummary = resetFlag ? [] : calculateDailySummary();
 
   const paymentLabels: Record<string, string> = {
     cash: 'Cash',
@@ -115,6 +118,11 @@ export default function ReportsPage() {
     ready: 'Ready',
     completed: 'Completed',
     cancelled: 'Cancelled'
+  };
+
+  const handleReset = () => {
+    if (!confirm('Reset the displayed report numbers? This will only clear the values on this page until you refresh.')) return;
+    setResetFlag(true);
   };
 
   if (loading) {
@@ -141,15 +149,23 @@ export default function ReportsPage() {
             <h1 className="text-3xl font-black text-[#5a361e]">Sales Reports</h1>
             <p className="text-[#5a361e]/60 mt-1">Analytics and insights of bebongs business haha </p>
           </div>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="bg-white border-2 border-[#5a361e]/20 rounded-lg px-4 py-2 font-bold text-[#5a361e] focus:outline-none focus:border-[#0a6c5d]"
-          >
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-            <option value="90">Last 90 Days</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleReset}
+              className="bg-red-100 hover:bg-red-200 text-red-700 font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              Reset
+            </button>
+            <select
+              value={dateRange}
+              onChange={(e) => { setDateRange(e.target.value); setResetFlag(false); }}
+              className="bg-white border-2 border-[#5a361e]/20 rounded-lg px-4 py-2 font-bold text-[#5a361e] focus:outline-none focus:border-[#0a6c5d]"
+            >
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+            </select>
+          </div>
           </div>
         </div>
 
