@@ -22,14 +22,26 @@ interface CartItem {
 
 interface Order {
   id: string;
-  order_number: string;
+  order_number?: string;
   total: number;
   subtotal: number;
   vat: number;
-  payment_method: string;
-  payment_status: string;
-  order_status: string;
+  payment_method?: string;
+  payment_status?: string;
+  order_status?: string;
+  status?: string;
   created_at: string;
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const supabaseError = error as { message?: string; details?: string; hint?: string; code?: string };
+    return [supabaseError.message, supabaseError.details, supabaseError.hint, supabaseError.code]
+      .filter(Boolean)
+      .join(' — ');
+  }
+  return String(error || 'Unknown error');
 }
 
 export default function Home() {
@@ -151,18 +163,14 @@ export default function Home() {
       setProcessingPayment(true);
       const supabase = createClient();
       
-      // Create order with payment details
+      // Create an order using the columns available in the live Supabase schema.
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          table_number: tableNumber,
-          order_type: orderType,
-          subtotal: subtotal,
-          vat: vat,
-          total: total,
-          payment_method: paymentMethod,
-          payment_status: 'paid',
-          order_status: 'preparing'
+          subtotal,
+          vat,
+          total,
+          status: 'paid'
         })
         .select()
         .single();
@@ -174,8 +182,7 @@ export default function Home() {
         order_id: order.id,
         product_id: item.product.id,
         quantity: item.quantity,
-        price: item.product.price,
-        subtotal: item.product.price * item.quantity
+        price: item.product.price
       }));
 
       const { error: itemsError } = await supabase
@@ -199,7 +206,7 @@ export default function Home() {
 
         if (stockError) throw stockError;
 
-        // Create inventory transaction
+        // Inventory history is optional until the migration is applied.
         const { error: transactionError } = await supabase
           .from('inventory_transactions')
           .insert({
@@ -212,7 +219,7 @@ export default function Home() {
             reference_id: order.id
           });
 
-        if (transactionError) throw transactionError;
+        if (transactionError && transactionError.code !== 'PGRST205') throw transactionError;
       }
 
       // Clear cart and refresh
@@ -223,9 +230,9 @@ export default function Home() {
       const change = paymentMethod === 'cash' ? calculateChange(Number(amountTendered), total) : null;
       setAmountTendered('');
       
-      alert(`Order ${order.order_number} processed successfully!${change !== null ? ` Change: ₱${change.toFixed(2)}` : ''}`);
+      alert(`Order ${order.order_number || order.id.slice(0, 8)} processed successfully!${change !== null ? ` Change: ₱${change.toFixed(2)}` : ''}`);
     } catch (err) {
-      alert('Failed to process order: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert('Failed to process order: ' + getErrorMessage(err));
     } finally {
       setProcessingPayment(false);
     }
@@ -533,7 +540,7 @@ export default function Home() {
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-bold text-[#5a361e] text-sm">{order.order_number}</p>
+                          <p className="font-bold text-[#5a361e] text-sm">{order.order_number || `Order ${order.id.slice(0, 8)}`}</p>
                           <p className="text-xs text-[#5a361e]/60">
                             {new Date(order.created_at).toLocaleTimeString()}
                           </p>
@@ -542,10 +549,10 @@ export default function Home() {
                           <p className="font-black text-[#0a6c5d]">₱{order.total.toFixed(2)}</p>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             order.order_status === 'completed' ? 'bg-green-100 text-green-700' :
-                            order.order_status === 'preparing' ? 'bg-yellow-100 text-yellow-700' :
+                            (order.order_status || order.status) === 'preparing' ? 'bg-yellow-100 text-yellow-700' :
                             'bg-gray-100 text-gray-700'
                           }`}>
-                            {order.order_status}
+                            {order.order_status || order.status || 'paid'}
                           </span>
                         </div>
                       </div>
