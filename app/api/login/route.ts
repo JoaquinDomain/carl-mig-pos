@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSessionToken } from '../../../utils/auth.js';
+import { createSessionToken } from '../../../utils/auth-edge';
 
 export async function POST(request: NextRequest) {
   const { role, password } = await request.json();
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   const secret = process.env.AUTH_SECRET;
   if (!secret) return NextResponse.json({ error: 'Authentication is not configured.' }, { status: 500 });
   const response = NextResponse.json({ role });
-  response.cookies.set('carls_session', createSessionToken(role, secret), {
+  response.cookies.set('carls_session', await createSessionToken(role, secret), {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',

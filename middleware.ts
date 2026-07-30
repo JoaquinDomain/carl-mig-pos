@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifySessionToken } from './utils/auth.js';
+import { verifySessionToken } from './utils/auth-edge';
 
-export function middleware(request: NextRequest) {
-  const role = verifySessionToken(
+export async function middleware(request: NextRequest) {
+  const role = await verifySessionToken(
     request.cookies.get('carls_session')?.value,
     process.env.AUTH_SECRET
   );
