@@ -139,7 +139,7 @@ export default function ReportsPage() {
           <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-black text-[#5a361e]">Sales Reports</h1>
-            <p className="text-[#5a361e]/60 mt-1">Analytics and insights for your business</p>
+            <p className="text-[#5a361e]/60 mt-1">Analytics and insights of bebongs business haha </p>
           </div>
           <select
             value={dateRange}
