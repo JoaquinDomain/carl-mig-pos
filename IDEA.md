@@ -1,0 +1,1 @@
+Goal-driven to deliver a fully functional point-of-sale platform, our primary objective with the Carls-Mig POS is to seamlessly integrate real-time inventory tracking, category filtering, cart management, and automated 12% VAT calculations into a custom web application designed for an Espresso & Laundry Hub.
