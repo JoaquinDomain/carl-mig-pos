@@ -57,7 +57,10 @@ export default function Home() {
   async function fetchProducts() {
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.from('products').select('*');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .gte('stock', 0);
       
       if (error) throw error;
       setProducts(data || []);

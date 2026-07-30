@@ -50,7 +50,11 @@ export default function InventoryPage() {
   async function fetchProducts() {
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.from('products').select('*').order('name');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .gte('stock', 0)
+        .order('name');
       
       if (error) throw error;
       setProducts(data || []);
@@ -113,16 +117,19 @@ export default function InventoryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm('Archive this product? It will be removed from the POS but retained in sales history.')) return;
     
     try {
       const supabase = createClient();
-      const { error } = await supabase.from('products').delete().eq('id', id);
+      const { error } = await supabase
+        .from('products')
+        .update({ stock: -1 })
+        .eq('id', id);
       
       if (error) throw error;
       await fetchProducts();
     } catch (err) {
-      alert('Failed to delete product: ' + getErrorMessage(err));
+      alert('Failed to archive product: ' + getErrorMessage(err));
     }
   };
 
@@ -142,7 +149,7 @@ export default function InventoryPage() {
       if (updateError) throw updateError;
       if (!updatedProduct) throw new Error('Stock changed elsewhere. Refresh and try again.');
 
-      // Create inventory transaction
+      // Inventory history is optional until the migration is applied.
       const { error: transactionError } = await supabase
         .from('inventory_transactions')
         .insert({
@@ -154,7 +161,7 @@ export default function InventoryPage() {
           reason: 'Manual restock'
         });
       
-      if (transactionError) throw transactionError;
+      if (transactionError && transactionError.code !== 'PGRST205') throw transactionError;
 
       await fetchProducts();
     } catch (err) {
@@ -180,7 +187,7 @@ export default function InventoryPage() {
     setShowModal(true);
   };
 
-  const lowStockProducts = products.filter(p => p.stock <= (p.min_stock_level || 5));
+  const lowStockProducts = products.filter(p => p.stock <= (p.min_stock_level ?? 5));
 
   if (loading) {
     return (
