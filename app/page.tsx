@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '../utils/supabase/client';
-import { calculateChange, calculateSaleTotals } from '../utils/sales.js';
+import { calculateChange, calculateSaleTotals, validatePaymentMethod } from '../utils/sales.js';
 
 interface Product {
   id: string;
@@ -130,6 +130,13 @@ export default function Home() {
 
   const processPayment = async () => {
     if (cart.length === 0 || processingPayment) return;
+
+    try {
+      validatePaymentMethod(paymentMethod);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'This payment method is locked.');
+      return;
+    }
 
     if (paymentMethod === 'cash') {
       try {
@@ -574,24 +581,33 @@ export default function Home() {
             
             <div className="p-6 space-y-3">
               {[
-                { value: 'cash', label: 'Cash', icon: '💵' },
-                { value: 'card', label: 'Card', icon: '💳' },
-                { value: 'gcash', label: 'GCash', icon: '📱' },
-                { value: 'maya', label: 'Maya', icon: '📱' },
-                { value: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' }
+                { value: 'cash', label: 'Cash', icon: '💵', locked: false },
+                { value: 'card', label: 'Card', icon: '💳', locked: true },
+                { value: 'gcash', label: 'GCash', icon: '📱', locked: true },
+                { value: 'maya', label: 'Maya', icon: '📱', locked: true },
+                { value: 'bank_transfer', label: 'Bank Transfer', icon: '🏦', locked: true }
               ].map((method) => (
                 <button
                   key={method.value}
-                  onClick={() => setPaymentMethod(method.value)}
+                  type="button"
+                  disabled={method.locked}
+                  aria-disabled={method.locked}
+                  onClick={() => !method.locked && setPaymentMethod(method.value)}
                   className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${
-                    paymentMethod === method.value
+                    method.locked
+                      ? 'border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed'
+                      : paymentMethod === method.value
                       ? 'border-[#0a6c5d] bg-[#0a6c5d]/10'
                       : 'border-[#5a361e]/20 hover:border-[#0a6c5d]'
                   }`}
                 >
                   <span className="text-2xl">{method.icon}</span>
                   <span className="font-bold text-[#5a361e]">{method.label}</span>
-                  {paymentMethod === method.value && (
+                  {method.locked ? (
+                    <span className="ml-auto flex items-center gap-2 text-xs font-black uppercase tracking-wide text-gray-600">
+                      🔒 Coming soon
+                    </span>
+                  ) : paymentMethod === method.value && (
                     <span className="ml-auto text-[#0a6c5d] font-black">✓</span>
                   )}
                 </button>

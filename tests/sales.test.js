@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calculateSaleTotals, calculateChange } = require('../utils/sales.js');
+const { calculateSaleTotals, calculateChange, validatePaymentMethod } = require('../utils/sales.js');
 
 test('calculates VAT-inclusive order totals in cent-safe amounts', () => {
   assert.deepEqual(calculateSaleTotals([
@@ -17,4 +17,11 @@ test('calculates cash change and rejects insufficient tender', () => {
 test('rejects empty or invalid sale lines', () => {
   assert.throws(() => calculateSaleTotals([]), /at least one item/);
   assert.throws(() => calculateSaleTotals([{ price: 100, quantity: 0 }]), /Invalid sale item/);
+});
+
+test('only cash is currently available for payment', () => {
+  assert.equal(validatePaymentMethod('cash'), 'cash');
+  for (const method of ['card', 'gcash', 'maya', 'bank_transfer']) {
+    assert.throws(() => validatePaymentMethod(method), /not available yet/);
+  }
 });

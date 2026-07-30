@@ -30,4 +30,11 @@ function calculateChange(amountTendered, total) {
   return toMoney(tendered - amountDue);
 }
 
-module.exports = { calculateSaleTotals, calculateChange, toMoney };
+function validatePaymentMethod(method) {
+  if (method !== 'cash') {
+    throw new Error('This payment method is not available yet.');
+  }
+  return method;
+}
+
+module.exports = { calculateSaleTotals, calculateChange, toMoney, validatePaymentMethod };
