@@ -5,13 +5,10 @@ import { createClient } from '../../utils/supabase/client';
 
 interface Order {
   id: string;
-  order_number: string;
   total: number;
   subtotal: number;
   vat: number;
-  payment_method: string;
-  payment_status: string;
-  order_status: string;
+  status: string;
   created_at: string;
 }
 
@@ -57,18 +54,18 @@ export default function ReportsPage() {
   }
 
   const calculateStats = () => {
-    const paidOrders = orders.filter(o => o.payment_status === 'paid' && o.order_status !== 'cancelled');
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total, 0);
-    const totalOrders = orders.length;
-    const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
+    const paidOrders = orders.filter(o => o.status === 'paid');
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+    const totalOrders = paidOrders.length;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     
     const paymentBreakdown = paidOrders.reduce((acc, o) => {
-      acc[o.payment_method] = (acc[o.payment_method] || 0) + o.total;
+      acc.cash = (acc.cash || 0) + Number(o.total);
       return acc;
     }, {} as Record<string, number>);
 
     const statusBreakdown = orders.reduce((acc, o) => {
-      acc[o.order_status] = (acc[o.order_status] || 0) + 1;
+      acc[o.status] = (acc[o.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -79,7 +76,7 @@ export default function ReportsPage() {
     const dailyData: Record<string, DailySummary> = {};
     
     orders
-      .filter(order => order.payment_status === 'paid' && order.order_status !== 'cancelled')
+      .filter(order => order.status === 'paid')
       .forEach(order => {
       const date = new Date(order.created_at).toLocaleDateString();
       if (!dailyData[date]) {
@@ -92,8 +89,8 @@ export default function ReportsPage() {
         };
       }
       dailyData[date].total_orders++;
-      dailyData[date].total_revenue += order.total;
-      dailyData[date].total_cost += order.subtotal * 0.6; // Assuming 40% margin
+      dailyData[date].total_revenue += Number(order.total);
+      dailyData[date].total_cost += Number(order.subtotal) * 0.6; // Estimated 40% margin
       dailyData[date].gross_profit = dailyData[date].total_revenue - dailyData[date].total_cost;
     });
 
@@ -113,6 +110,7 @@ export default function ReportsPage() {
 
   const statusLabels: Record<string, string> = {
     pending: 'Pending',
+    paid: 'Paid',
     preparing: 'Preparing',
     ready: 'Ready',
     completed: 'Completed',
@@ -196,7 +194,7 @@ export default function ReportsPage() {
                 <p className="text-xs font-bold text-[#5a361e]/60 uppercase mb-2">Completion Rate</p>
                 <p className="text-3xl font-black text-[#0a6c5d]">
                   {stats.totalOrders > 0 
-                    ? ((stats.statusBreakdown.completed || 0) / stats.totalOrders * 100).toFixed(1)
+                    ? ((stats.statusBreakdown.paid || 0) / stats.totalOrders * 100).toFixed(1)
                     : '0'}%
                 </p>
                 <p className="text-sm text-[#5a361e]/60 mt-1">Orders completed</p>
@@ -344,6 +342,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {Object.entries(stats.statusBreakdown).map(([status, count]) => {
                 const statusColors: Record<string, string> = {
+                  paid: 'bg-green-100 text-green-700 border-green-300',
                   pending: 'bg-yellow-100 text-yellow-700 border-yellow-300',
                   preparing: 'bg-blue-100 text-blue-700 border-blue-300',
                   ready: 'bg-purple-100 text-purple-700 border-purple-300',
@@ -375,25 +374,23 @@ export default function ReportsPage() {
                 <tbody>
                   {orders.map((order) => (
                     <tr key={order.id} className="border-b border-[#5a361e]/10 hover:bg-[#fbf7f1]/50">
-                      <td className="p-3 font-bold text-[#5a361e]">{order.order_number}</td>
+                      <td className="p-3 font-bold text-[#5a361e]">Order {order.id.slice(0, 8)}</td>
                       <td className="p-3 text-[#5a361e]/70">
                         {new Date(order.created_at).toLocaleString()}
                       </td>
-                      <td className="p-3 text-right font-bold text-[#0a6c5d]">₱{order.total.toFixed(2)}</td>
+                      <td className="p-3 text-right font-bold text-[#0a6c5d]">₱{Number(order.total).toFixed(2)}</td>
                       <td className="p-3 text-center">
                         <span className="bg-[#fbf7f1] px-2 py-1 rounded-full text-xs font-bold text-[#5a361e]">
-                          {paymentLabels[order.payment_method] || order.payment_method}
+                          Cash
                         </span>
                       </td>
                       <td className="p-3 text-center">
                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          order.order_status === 'completed' ? 'bg-green-100 text-green-700' :
-                          order.order_status === 'preparing' ? 'bg-blue-100 text-blue-700' :
-                          order.order_status === 'ready' ? 'bg-purple-100 text-purple-700' :
-                          order.order_status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          order.status === 'paid' ? 'bg-green-100 text-green-700' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                           'bg-yellow-100 text-yellow-700'
                         }`}>
-                          {statusLabels[order.order_status] || order.order_status}
+                          {statusLabels[order.status] || order.status}
                         </span>
                       </td>
                     </tr>
