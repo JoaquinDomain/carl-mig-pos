@@ -15,6 +15,17 @@ interface Product {
   is_active?: boolean;
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const supabaseError = error as { message?: string; details?: string; hint?: string; code?: string };
+    return [supabaseError.message, supabaseError.details, supabaseError.hint, supabaseError.code]
+      .filter(Boolean)
+      .join(' — ');
+  }
+  return String(error || 'Unknown error');
+}
+
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,13 +67,11 @@ export default function InventoryPage() {
     try {
       const supabase = createClient();
       const productData = {
-        name: formData.name,
+        name: formData.name.trim(),
         price: parseFloat(formData.price),
         category: formData.category,
         stock: parseInt(formData.stock),
-        sku: formData.sku || null,
-        cost_price: formData.cost_price ? parseFloat(formData.cost_price) : null,
-        min_stock_level: parseInt(formData.min_stock_level)
+        sku: formData.sku.trim() || null
       };
 
       if (editingProduct) {
@@ -85,7 +94,7 @@ export default function InventoryPage() {
       setEditingProduct(null);
       resetForm();
     } catch (err) {
-      alert('Failed to save product: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert('Failed to save product: ' + getErrorMessage(err));
     }
   };
 
@@ -113,7 +122,7 @@ export default function InventoryPage() {
       if (error) throw error;
       await fetchProducts();
     } catch (err) {
-      alert('Failed to delete product: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert('Failed to delete product: ' + getErrorMessage(err));
     }
   };
 
