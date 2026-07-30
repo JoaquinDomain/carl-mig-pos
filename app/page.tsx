@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '../utils/supabase/client';
 import { calculateChange, calculateSaleTotals, validatePaymentMethod } from '../utils/sales.js';
+import LogoutButton from './components/LogoutButton';
 
 interface Product {
   id: string;
@@ -58,12 +59,14 @@ export default function Home() {
   const [orderType, setOrderType] = useState('dine-in');
   const [amountTendered, setAmountTendered] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [role, setRole] = useState<'admin' | 'guest' | null>(null);
 
   const categories = ['All', 'Espresso', 'Brewed', 'Pastries', 'Laundry'];
 
   useEffect(() => {
     fetchProducts();
     fetchRecentOrders();
+    fetch('/api/session').then(response => response.json()).then(data => setRole(data.role));
   }, []);
 
   async function fetchProducts() {
@@ -108,6 +111,7 @@ export default function Home() {
   });
 
   const addToCart = (product: Product) => {
+    if (role !== 'admin') return;
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -310,6 +314,7 @@ export default function Home() {
           {/* Navigation + Search + User */}
           <div className="md:ml-auto flex items-center gap-3">
             {/* Navigation */}
+            {role === 'admin' && (
             <nav className="hidden md:flex items-center gap-2 bg-white rounded-full px-4 py-2 border-2 border-[#5a361e]/15">
               <a href="/" className="text-sm font-bold text-[#0a6c5d] px-2">POS</a>
               <span className="text-[#5a361e]/30">|</span>
@@ -317,6 +322,7 @@ export default function Home() {
               <span className="text-[#5a361e]/30">|</span>
               <a href="/reports" className="text-sm font-bold text-[#5a361e] hover:text-[#0a6c5d] px-2">Reports</a>
             </nav>
+            )}
             
             <div className="relative">
               <input
@@ -328,9 +334,10 @@ export default function Home() {
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a361e]/50">🔍</span>
             </div>
-            <div className="w-11 h-11 rounded-full bg-[#0a6c5d] text-white flex items-center justify-center font-bold shadow-md hover:scale-105 transition-transform cursor-pointer">
-              CM
+            <div className="w-11 h-11 rounded-full bg-[#0a6c5d] text-white flex items-center justify-center font-bold shadow-md">
+              {role === 'admin' ? 'AD' : 'GU'}
             </div>
+            <LogoutButton />
           </div>
         </header>
 
@@ -352,7 +359,7 @@ export default function Home() {
         </nav>
 
         {/* ===== Main Layout: Grid + Cart ===== */}
-        <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+        <div className={`grid gap-6 ${role === 'admin' ? 'lg:grid-cols-[1fr_360px]' : ''}`}>
 
           {/* === Product Grid === */}
           <section>
@@ -368,10 +375,10 @@ export default function Home() {
                 <button
                   key={product.id}
                   onClick={() => addToCart(product)}
-                  disabled={product.stock === 0}
-                  className={`group bg-white rounded-2xl shadow-sm border-2 border-transparent hover:border-[#0a6c5d] hover:shadow-xl transition-all overflow-hidden text-left animate-slide-up ${
-                    product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                disabled={product.stock === 0 || role !== 'admin'}
+                className={`group bg-white rounded-2xl shadow-sm border-2 border-transparent transition-all overflow-hidden text-left animate-slide-up ${
+                    product.stock === 0 || role !== 'admin' ? 'cursor-default' : 'hover:border-[#0a6c5d] hover:shadow-xl'
+                  } ${product.stock === 0 ? 'opacity-50' : ''}`}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Product visual placeholder */}
@@ -416,6 +423,7 @@ export default function Home() {
           </section>
 
           {/* === Order Summary Sidebar === */}
+          {role === 'admin' && (
           <aside className="lg:sticky lg:top-6 self-start">
             <div className="bg-white rounded-2xl shadow-lg border-2 border-[#5a361e]/10 overflow-hidden">
               {/* Header */}
@@ -574,6 +582,7 @@ export default function Home() {
               </div>
             </div>
           </aside>
+          )}
         </div>
       </div>
 
