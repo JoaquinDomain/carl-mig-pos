@@ -56,7 +56,7 @@ export default function LoginPage() {
           <button onClick={() => login('guest')} disabled={loading} className="w-full rounded-xl border-2 border-[#5a361e]/20 py-3 font-black text-[#5a361e] hover:border-[#0a6c5d] disabled:opacity-50">
             Continue as Guest
           </button>
-          <p className="text-center text-xs text-[#5a361e]/60">Guests can view the menu only. Admins have full access.</p>
+          <p className="text-center text-xs text-[#5a361e]/60">Guests can view the menu only. Admins only bebong and nang kim hihi.</p>
           {error && <p className="rounded-xl bg-red-50 p-3 text-center text-sm font-bold text-red-700">{error}</p>}
         </div>
       </div>
