@@ -60,13 +60,17 @@ export default function Home() {
   const [amountTendered, setAmountTendered] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [role, setRole] = useState<'admin' | 'guest' | null>(null);
+  const [todaySales, setTodaySales] = useState(0);
+  const [todayOrders, setTodayOrders] = useState(0);
 
   const categories = ['All', 'Espresso', 'Brewed', 'Pastries', 'Laundry'];
 
   useEffect(() => {
     fetchProducts();
     fetchRecentOrders();
+    fetchTodayStats();
     fetch('/api/session').then(response => response.json()).then(data => setRole(data.role));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchProducts() {
@@ -99,6 +103,31 @@ export default function Home() {
       setRecentOrders(data || []);
     } catch (err) {
       console.error('Failed to fetch recent orders:', err);
+    }
+  }
+
+  async function fetchTodayStats() {
+    try {
+      const supabase = createClient();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .gte('created_at', today.toISOString())
+        .eq('status', 'paid');
+      
+      if (error) throw error;
+      
+      const orders = data || [];
+      const totalSales = orders.reduce((sum, order) => sum + Number(order.total), 0);
+      const orderCount = orders.length;
+      
+      setTodaySales(totalSales);
+      setTodayOrders(orderCount);
+    } catch (err) {
+      console.error('Failed to fetch today stats:', err);
     }
   }
 
@@ -230,6 +259,7 @@ export default function Home() {
       setCart([]);
       await fetchProducts();
       await fetchRecentOrders();
+      await fetchTodayStats();
       setShowPaymentModal(false);
       const change = paymentMethod === 'cash' ? calculateChange(Number(amountTendered), total) : null;
       setAmountTendered('');
@@ -574,11 +604,11 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div className="bg-white p-3 rounded-xl border border-[#5a361e]/10">
                 <p className="text-[10px] font-bold text-[#5a361e]/60 uppercase">Today&apos;s Sales</p>
-                <p className="text-lg font-black text-[#5a361e]">₱4,280</p>
+                <p className="text-lg font-black text-[#5a361e]">₱{todaySales.toFixed(2)}</p>
               </div>
               <div className="bg-white p-3 rounded-xl border border-[#5a361e]/10">
                 <p className="text-[10px] font-bold text-[#5a361e]/60 uppercase">Orders</p>
-                <p className="text-lg font-black text-[#0a6c5d]">27</p>
+                <p className="text-lg font-black text-[#0a6c5d]">{todayOrders}</p>
               </div>
             </div>
           </aside>
