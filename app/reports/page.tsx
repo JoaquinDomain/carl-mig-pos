@@ -120,9 +120,44 @@ export default function ReportsPage() {
     cancelled: 'Cancelled'
   };
 
-  const handleReset = () => {
-    if (!confirm('Reset the displayed report numbers? This will only clear the values on this page until you refresh.')) return;
-    setResetFlag(true);
+  const handleReset = async () => {
+    const phrase = prompt('To permanently delete all sales data and reset the report, type: DELETE ALL SALES');
+    if (phrase !== 'DELETE ALL SALES') {
+      alert('Reset cancelled. You must type the exact phrase to confirm.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to permanently delete all orders and order items? This action cannot be undone and will free up database space.')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      
+      // Delete order_items first (due to foreign key constraints)
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      if (itemsError) throw itemsError;
+
+      // Delete orders
+      const { error: ordersError } = await supabase
+        .from('orders')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      if (ordersError) throw ordersError;
+
+      // Clear local state and set reset flag
+      setOrders([]);
+      setResetFlag(true);
+      alert('Sales data has been permanently deleted from the database. Use Refresh to fetch new data.');
+    } catch (err) {
+      console.error('Failed to reset sales data:', err);
+      alert('Failed to delete sales data. Please try again.');
+    }
   };
 
   if (loading) {
@@ -154,7 +189,13 @@ export default function ReportsPage() {
               onClick={handleReset}
               className="bg-red-100 hover:bg-red-200 text-red-700 font-bold px-4 py-2 rounded-lg transition-colors"
             >
-              Reset
+              Reset & Delete Data
+            </button>
+            <button
+              onClick={() => { fetchOrders(); setResetFlag(false); }}
+              className="bg-[#5a361e]/10 hover:bg-[#5a361e]/20 text-[#5a361e] font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              Refresh
             </button>
             <select
               value={dateRange}
