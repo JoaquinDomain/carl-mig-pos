@@ -24,64 +24,64 @@ END $$;
 
 -- PRODUCTS TABLE POLICIES
 -- Allow public read access for products (needed for POS display)
-CREATE POLICY IF NOT EXISTS "Products are publicly viewable" 
+CREATE POLICY "Products are publicly viewable" 
 ON products FOR SELECT 
 USING (true);
 
 -- Allow authenticated users to insert products (admin only in practice)
-CREATE POLICY IF NOT EXISTS "Authenticated users can insert products" 
+CREATE POLICY "Authenticated users can insert products" 
 ON products FOR INSERT 
 WITH CHECK (true);
 
 -- Allow authenticated users to update products (admin only in practice)
-CREATE POLICY IF NOT EXISTS "Authenticated users can update products" 
+CREATE POLICY "Authenticated users can update products" 
 ON products FOR UPDATE 
 USING (true);
 
 -- Allow authenticated users to delete products (admin only in practice)
-CREATE POLICY IF NOT EXISTS "Authenticated users can delete products" 
+CREATE POLICY "Authenticated users can delete products" 
 ON products FOR DELETE 
 USING (true);
 
 -- ORDERS TABLE POLICIES
 -- Allow public read access for orders (needed for order history display)
-CREATE POLICY IF NOT EXISTS "Orders are publicly viewable" 
+CREATE POLICY "Orders are publicly viewable" 
 ON orders FOR SELECT 
 USING (true);
 
 -- Allow authenticated users to insert orders (needed for creating orders)
-CREATE POLICY IF NOT EXISTS "Authenticated users can insert orders" 
+CREATE POLICY "Authenticated users can insert orders" 
 ON orders FOR INSERT 
 WITH CHECK (true);
 
 -- Allow authenticated users to update orders (needed for status updates)
-CREATE POLICY IF NOT EXISTS "Authenticated users can update orders" 
+CREATE POLICY "Authenticated users can update orders" 
 ON orders FOR UPDATE 
 USING (true);
 
 -- Allow authenticated users to delete orders (admin only in practice)
-CREATE POLICY IF NOT EXISTS "Authenticated users can delete orders" 
+CREATE POLICY "Authenticated users can delete orders" 
 ON orders FOR DELETE 
 USING (true);
 
 -- ORDER_ITEMS TABLE POLICIES
 -- Allow public read access for order items (needed for order details)
-CREATE POLICY IF NOT EXISTS "Order items are publicly viewable" 
+CREATE POLICY "Order items are publicly viewable" 
 ON order_items FOR SELECT 
 USING (true);
 
 -- Allow authenticated users to insert order items (needed for creating orders)
-CREATE POLICY IF NOT EXISTS "Authenticated users can insert order items" 
+CREATE POLICY "Authenticated users can insert order items" 
 ON order_items FOR INSERT 
 WITH CHECK (true);
 
 -- Allow authenticated users to update order items (rarely needed)
-CREATE POLICY IF NOT EXISTS "Authenticated users can update order items" 
+CREATE POLICY "Authenticated users can update order items" 
 ON order_items FOR UPDATE 
 USING (true);
 
 -- Allow authenticated users to delete order items (rarely needed)
-CREATE POLICY IF NOT EXISTS "Authenticated users can delete order items" 
+CREATE POLICY "Authenticated users can delete order items" 
 ON order_items FOR DELETE 
 USING (true);
 
@@ -90,22 +90,22 @@ DO $$
 BEGIN
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'inventory_transactions') THEN
         -- Allow public read access for inventory transactions (needed for inventory tracking)
-        CREATE POLICY IF NOT EXISTS "Inventory transactions are publicly viewable" 
+        CREATE POLICY "Inventory transactions are publicly viewable" 
         ON inventory_transactions FOR SELECT 
         USING (true);
 
         -- Allow authenticated users to insert inventory transactions (needed for stock tracking)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can insert inventory transactions" 
+        CREATE POLICY "Authenticated users can insert inventory transactions" 
         ON inventory_transactions FOR INSERT 
         WITH CHECK (true);
 
         -- Allow authenticated users to update inventory transactions (rarely needed)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can update inventory transactions" 
+        CREATE POLICY "Authenticated users can update inventory transactions" 
         ON inventory_transactions FOR UPDATE 
         USING (true);
 
         -- Allow authenticated users to delete inventory transactions (admin only in practice)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can delete inventory transactions" 
+        CREATE POLICY "Authenticated users can delete inventory transactions" 
         ON inventory_transactions FOR DELETE 
         USING (true);
     END IF;
@@ -116,22 +116,22 @@ DO $$
 BEGIN
     IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'daily_sales_summary') THEN
         -- Allow public read access for daily sales summary (needed for reporting)
-        CREATE POLICY IF NOT EXISTS "Daily sales summary is publicly viewable" 
+        CREATE POLICY "Daily sales summary is publicly viewable" 
         ON daily_sales_summary FOR SELECT 
         USING (true);
 
         -- Allow authenticated users to insert daily sales summary (needed for reporting)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can insert daily sales summary" 
+        CREATE POLICY "Authenticated users can insert daily sales summary" 
         ON daily_sales_summary FOR INSERT 
         WITH CHECK (true);
 
         -- Allow authenticated users to update daily sales summary (needed for reporting)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can update daily sales summary" 
+        CREATE POLICY "Authenticated users can update daily_sales_summary" 
         ON daily_sales_summary FOR UPDATE 
         USING (true);
 
         -- Allow authenticated users to delete daily sales summary (admin only in practice)
-        CREATE POLICY IF NOT EXISTS "Authenticated users can delete daily sales summary" 
+        CREATE POLICY "Authenticated users can delete daily_sales_summary" 
         ON daily_sales_summary FOR DELETE 
         USING (true);
     END IF;
